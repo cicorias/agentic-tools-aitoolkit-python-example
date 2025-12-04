@@ -1,0 +1,10 @@
+.env/
+.venv/
+.env
+.envrc
+
+__pycache__/
+
+
+# azure config path
+.azure/
