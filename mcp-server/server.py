@@ -12,7 +12,7 @@ from psycopg2.extras import RealDictCursor
 from mcp.server.models import InitializationOptions
 from mcp.server import NotificationOptions, Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
+from mcp.types import Tool, TextContent
 
 
 # Database connection parameters from environment variables
@@ -36,6 +36,22 @@ def query_db(query: str, params: tuple = ()) -> list[dict[str, Any]]:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(query, params)
             return [dict(row) for row in cur.fetchall()]
+
+
+def build_in_clause_query(base_query: str, values: list) -> tuple[str, tuple]:
+    """
+    Build a SQL query with IN clause from a base query and list of values.
+    
+    Args:
+        base_query: SQL query template with {placeholders} marker
+        values: List of values to include in the IN clause
+        
+    Returns:
+        Tuple of (formatted_query, values_tuple)
+    """
+    placeholders = ",".join(["%s"] * len(values))
+    query = base_query.format(placeholders=placeholders)
+    return query, tuple(values)
 
 
 # Create MCP server instance
@@ -212,8 +228,7 @@ async def lookup_invoice(args: dict) -> list[TextContent]:
     if not invoice_numbers:
         return [TextContent(type="text", text="No invoice numbers provided.")]
 
-    placeholders = ",".join(["%s"] * len(invoice_numbers))
-    query = f"""
+    base_query = """
         SELECT i.invoice_id, i.invoice_number, i.invoice_date, i.due_date,
                i.currency_code, i.status, i.subtotal_amount, i.tax_amount, 
                i.total_amount, s.name as supplier_name, s.supplier_id,
@@ -224,7 +239,8 @@ async def lookup_invoice(args: dict) -> list[TextContent]:
         WHERE i.invoice_number IN ({placeholders})
         ORDER BY i.invoice_date DESC
     """
-    results = query_db(query, tuple(invoice_numbers))
+    query, params = build_in_clause_query(base_query, invoice_numbers)
+    results = query_db(query, params)
 
     if not results:
         return [TextContent(type="text", text="No invoices found.")]
@@ -253,8 +269,7 @@ async def lookup_purchase_order(args: dict) -> list[TextContent]:
     if not po_numbers:
         return [TextContent(type="text", text="No purchase order numbers provided.")]
 
-    placeholders = ",".join(["%s"] * len(po_numbers))
-    query = f"""
+    base_query = """
         SELECT po.po_id, po.po_number, po.order_date, po.currency_code,
                po.status, po.total_amount, s.name as supplier_name, s.supplier_id
         FROM purchase_orders po
@@ -262,7 +277,8 @@ async def lookup_purchase_order(args: dict) -> list[TextContent]:
         WHERE po.po_number IN ({placeholders})
         ORDER BY po.order_date DESC
     """
-    results = query_db(query, tuple(po_numbers))
+    query, params = build_in_clause_query(base_query, po_numbers)
+    results = query_db(query, params)
 
     if not results:
         return [TextContent(type="text", text="No purchase orders found.")]

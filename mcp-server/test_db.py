@@ -7,15 +7,12 @@ This is not a full MCP test but validates the database functions work correctly.
 import os
 import sys
 
-# Set up environment variables for testing
+# Set up environment variables for testing BEFORE any imports
 os.environ.setdefault("POSTGRES_HOST", "localhost")
 os.environ.setdefault("POSTGRES_PORT", "15432")
 os.environ.setdefault("POSTGRES_DATABASE", "invoices")
 os.environ.setdefault("POSTGRES_USER", "postgres")
 os.environ.setdefault("POSTGRES_PASSWORD", "P@ssw0rd!")
-
-# Import after setting env vars
-from server import get_db_connection, query_db
 
 
 def test_connection():
@@ -124,6 +121,13 @@ def test_views():
 
 def main():
     """Run all tests."""
+    # Import server module after environment variables are set
+    from server import get_db_connection, query_db
+    
+    # Make functions available globally for test functions
+    globals()['get_db_connection'] = get_db_connection
+    globals()['query_db'] = query_db
+    
     print("=" * 60)
     print("MCP Server Database Connectivity Test")
     print("=" * 60)
