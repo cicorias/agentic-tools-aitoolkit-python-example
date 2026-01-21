@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "postgres-lookup": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--directory", "${workspaceFolder}/mcp-server", "mcp-server"],
+      "env": {
+        "POSTGRES_HOST": "localhost",
+        "POSTGRES_PORT": "15432",
+        "POSTGRES_DATABASE": "invoices",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "P@ssw0rd!"
+      }
+    }
+  }
+}

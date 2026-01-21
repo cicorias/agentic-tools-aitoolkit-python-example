@@ -447,5 +447,10 @@ async def main():
         )
 
 
-if __name__ == "__main__":
+def main_cli():
+    """Entry point for the mcp-server script."""
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    main_cli()
