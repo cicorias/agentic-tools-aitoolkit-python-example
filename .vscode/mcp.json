@@ -1,6 +1,6 @@
 {
   "servers": {
-    "postgres-lookup": {
+    "postgres-lookup2": {
       "type": "stdio",
       "command": "uv",
       "args": ["run", "--directory", "${workspaceFolder}/mcp-server", "mcp-server"],
